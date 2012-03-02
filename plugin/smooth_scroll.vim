@@ -22,9 +22,15 @@ function! SmoothScroll(dir, windiv, factor)
       let t1=reltime()
       let i = i + 1
       if a:dir=="d"
-         normal j
+         normal 
+		 if line(".") != line("w$")
+			 normal j
+		 endif
       else
-         normal k
+         normal 
+		 if line("w0") != 1
+			 normal k
+		 endif
       end
       redraw
       while 1
@@ -35,7 +41,7 @@ function! SmoothScroll(dir, windiv, factor)
       endwhile
    endwhile
 endfunction
-map  :call SmoothScroll("d",2, 2)
-map  :call SmoothScroll("u",2, 2)
-map  :call SmoothScroll("d",1, 1)
-map  :call SmoothScroll("u",1, 1)
+noremap <silent> <C-D> :call SmoothScroll("d",2, 2)<CR>
+noremap <silent> <C-U> :call SmoothScroll("u",2, 2)<CR>
+noremap <silent> <C-F> :call SmoothScroll("d",1, 1)<CR>
+noremap <silent> <C-B> :call SmoothScroll("u",1, 1)<CR>
