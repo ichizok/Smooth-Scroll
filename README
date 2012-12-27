@@ -2,7 +2,7 @@ This is a mirror of http://www.vim.org/scripts/script.php?script_id=1601
 
 " Smooth Scroll
 "
-" Remamps 
+" Remaps
 "  <C-U>
 "  <C-D>
 "  <C-F>
@@ -11,9 +11,8 @@ This is a mirror of http://www.vim.org/scripts/script.php?script_id=1601
 " to allow smooth scrolling of the window. I find that quick changes of
 " context don't allow my eyes to follow the action properly.
 "
-" The global variable g:scroll_factor changes the scroll speed.
+" The global variable g:smooth_scroll_latency changes the scroll speed.
 "
 "
 " Written by Brad Phelan 2006
 " http://xtargets.com
-
