@@ -47,14 +47,13 @@ function! SmoothScroll(dir, windiv, scale)
         normal G
         break
       endif
-      execute cmd
     else
       if line('w0') == 1
         normal gg
         break
       endif
-      execute cmd
     end
+    execute cmd
     redraw
     execute 'sleep '.latency.'m'
   endwhile
