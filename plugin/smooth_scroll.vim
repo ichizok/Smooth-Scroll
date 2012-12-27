@@ -31,32 +31,43 @@ else
 endif
 
 function! SmoothScroll(dir, windiv, scale)
+  let save_cul = &cul
+  if save_cul | set nocul | endif
+
   let scrdown = a:dir == 'd'
   let wlcount = winheight(0) / a:windiv
   let latency = (s:smooth_scroll_latency * a:scale) / 1000
 
   let cmd = 'normal '
-  let cmd .= line('.') != line('w0') ? (scrdown ? "j" : "\<C-Y>") : ''
-  let cmd .= line('.') != line('w$') ? (scrdown ? "\<C-E>" : "k") : ''
+  if scrdown
+    let cmd .= line('.') != line('w0') ? "j" : ''
+    let cmd .= line('.') != line('w$') ? "\<C-E>" : ''
+    let mov = 'j'
+    let vbl = 'w$'
+    let tob = line('$')
+  else
+    let cmd .= line('.') != line('w0') ? "\<C-Y>" : ''
+    let cmd .= line('.') != line('w$')
+          \ || line('w0') == line('w$') ? "k" : ''
+    let mov = 'k'
+    let vbl = 'w0'
+    let tob = 1
+  endif
+  let slp = 'sleep '.latency.'m'
 
   let i = 0
   while i < wlcount
     let i += 1
-    if scrdown
-      if line('w$') == line('$')
-        normal G
-        break
-      endif
-    else
-      if line('w0') == 1
-        normal gg
-        break
-      endif
-    end
+    if line(vbl) == tob
+      execute 'normal '.(wlcount - i).mov
+      break
+    endif
     execute cmd
     redraw
-    execute 'sleep '.latency.'m'
+    execute slp
   endwhile
+
+  if save_cul | set cul | endif
 endfunction
 
 noremap <silent> <C-D> :call SmoothScroll('d', 2, 2)<CR>
