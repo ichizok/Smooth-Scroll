@@ -38,28 +38,23 @@ function! SmoothScroll(dir, windiv, scale)
   let wlcount = winheight(0) / a:windiv
   let latency = (s:smooth_scroll_latency * a:scale) / 1000
 
-  let cmd = 'normal '
   if scrdown
-    let cmd .= line('.') != line('w0') ? "j" : ''
-    let cmd .= line('.') != line('w$') ? "\<C-E>" : ''
-    let mov = 'j'
+    let pos = 'j'.(line('.') != line('w$') ? "\<C-E>" : '')
     let vbl = 'w$'
     let tob = line('$')
   else
-    let cmd .= line('.') != line('w0') ? "\<C-Y>" : ''
-    let cmd .= line('.') != line('w$')
-          \ || line('w0') == line('w$') ? "k" : ''
-    let mov = 'k'
+    let pos = 'k'.(line('.') != line('w0') ? "\<C-Y>" : '')
     let vbl = 'w0'
     let tob = 1
   endif
+  let cmd = 'normal '.pos
   let slp = 'sleep '.latency.'m'
 
   let i = 0
   while i < wlcount
     let i += 1
     if line(vbl) == tob
-      execute 'normal '.(wlcount - i).mov
+      execute 'normal '.(wlcount - i).pos
       break
     endif
     execute cmd
