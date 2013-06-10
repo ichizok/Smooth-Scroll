@@ -23,12 +23,8 @@ let g:loaded_smooth_scroll = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists('g:smooth_scroll_latency')
-      \ || type(g:smooth_scroll_latency) != type(0)
-  let s:smooth_scroll_latency = 5000
-else
-  let s:smooth_scroll_latency = g:smooth_scroll_latency
-endif
+let s:smooth_scroll_latency = get(g:, 'smooth_scroll_latency', 5000)
+let s:scroll_skip_line_size = get(g:, 'scroll_skip_line_size', 0)
 
 function! SmoothScroll(dir, windiv, scale)
   let save_cul = &cul
@@ -51,24 +47,52 @@ function! SmoothScroll(dir, windiv, scale)
   let slp = 'sleep '.latency.'m'
 
   let i = 0
+  let j = 0
+
   while i < wlcount
     let i += 1
+
     if line(vbl) == tob
       execute 'normal '.(wlcount - i).pos
       break
     endif
+
     execute cmd
-    redraw
+
+    if j >= s:scroll_skip_line_size
+      let j = 0
+      redraw
+    else
+      let j += 1
+    endif
+
     execute slp
   endwhile
 
   if save_cul | set cul | endif
 endfunction
 
-noremap <silent> <C-D> :call SmoothScroll('d', 2, 2)<CR>
-noremap <silent> <C-U> :call SmoothScroll('u', 2, 2)<CR>
-noremap <silent> <C-F> :call SmoothScroll('d', 1, 1)<CR>
-noremap <silent> <C-B> :call SmoothScroll('u', 1, 1)<CR>
+" Interfaces.
+nnoremap <silent> <script> <Plug>smooth-scroll-c-d :call SmoothScroll('d', 2, 2)<CR>
+nnoremap <silent> <script> <Plug>smooth-scroll-c-u :call SmoothScroll('u', 2, 2)<CR>
+nnoremap <silent> <script> <Plug>smooth-scroll-c-f :call SmoothScroll('d', 1, 1)<CR>
+nnoremap <silent> <script> <Plug>smooth-scroll-c-b :call SmoothScroll('u', 1, 1)<CR>
+
+" Default mappings.
+if !get(g:, 'smooth_scroll_no_default_key_mappings', 0)
+  if !hasmapto('<Plug>smooth-scroll-c-d')
+    nmap <silent> <unique> <C-D> <Plug>smooth-scroll-c-d
+  endif
+  if !hasmapto('<Plug>smooth-scroll-c-u')
+    nmap <silent> <unique> <C-U> <Plug>smooth-scroll-c-u
+  endif
+  if !hasmapto('<Plug>smooth-scroll-c-f')
+    nmap <silent> <unique> <C-F> <Plug>smooth-scroll-c-f
+  endif
+  if !hasmapto('<Plug>smooth-scroll-c-b')
+    nmap <silent> <unique> <C-B> <Plug>smooth-scroll-c-b
+  endif
+endif
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
