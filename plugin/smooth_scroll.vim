@@ -23,8 +23,8 @@ let g:loaded_smooth_scroll = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:smooth_scroll_latency = get(g:, 'smooth_scroll_latency', 5000)
-let s:scroll_skip_line_size = get(g:, 'scroll_skip_line_size', 0)
+let g:smooth_scroll_latency = get(g:, 'smooth_scroll_latency', 5000)
+let g:scroll_skip_line_size = get(g:, 'scroll_skip_line_size', 0)
 
 function! SmoothScroll(dir, windiv, scale)
   let save_cul = &cul
@@ -32,7 +32,7 @@ function! SmoothScroll(dir, windiv, scale)
 
   let scrdown = a:dir == 'd'
   let wlcount = winheight(0) / a:windiv
-  let latency = (s:smooth_scroll_latency * a:scale) / 1000
+  let latency = (g:smooth_scroll_latency * a:scale) / 1000
 
   if scrdown
     let pos = 'j'.(line('.') != line('w$') ? "\<C-E>" : '')
@@ -59,7 +59,7 @@ function! SmoothScroll(dir, windiv, scale)
 
     execute cmd
 
-    if j >= s:scroll_skip_line_size
+    if j >= g:scroll_skip_line_size
       let j = 0
       redraw
     else
