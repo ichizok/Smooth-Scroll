@@ -1,4 +1,4 @@
-" Smooth Scroll
+" vim-smooth-scroll
 "
 " Remaps
 "  <C-U>
@@ -23,66 +23,25 @@ let g:loaded_smooth_scroll = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-let g:smooth_scroll_latency = get(g:, 'smooth_scroll_latency', 5000)
-let g:scroll_skip_line_size = get(g:, 'scroll_skip_line_size', 0)
-
-function! SmoothScroll(dir, windiv, scale)
-  let save_cul = &cul
-  if save_cul | set nocul | endif
-
-  let wlcount = winheight(0) / a:windiv
-  let latency = ((g:smooth_scroll_latency * a:scale) / 1000) . 'm'
-  let skiplns = g:scroll_skip_line_size + 1
-
-  if a:dir ==# 'd'
-    " scroll-down
-    let pos = 'j' . (line('.') != line('w$') ? "\<C-E>" : '')
-    let vbl = 'w$'
-    let tob = line('$')
-  else
-    " scroll-up
-    let pos = 'k' . (line('.') != line('w0') ? "\<C-Y>" : '')
-    let vbl = 'w0'
-    let tob = 1
-  endif
-
-  for i in range(1, wlcount)
-    if line(vbl) == tob
-      execute 'normal' (wlcount - i + 1) . pos
-      break
-    endif
-
-    execute 'normal' pos
-
-    if i % skiplns == 0
-      redraw
-    endif
-
-    execute 'sleep' latency
-  endfor
-
-  if save_cul | set cul | endif
-endfunction
-
 " Interfaces.
-nnoremap <silent> <script> <Plug>(smooth-scroll-c-d) :call SmoothScroll('d', 2, 2)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-c-u) :call SmoothScroll('u', 2, 2)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-c-f) :call SmoothScroll('d', 1, 1)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-c-b) :call SmoothScroll('u', 1, 1)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-down-full) :call smooth_scroll#down(2, 2)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-up-full)   :call smooth_scroll#up(2, 2)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-down-half) :call smooth_scroll#down(1, 1)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-up-half)   :call smooth_scroll#up(1, 1)<CR>
 
 " Default mappings.
 if !get(g:, 'smooth_scroll_no_default_key_mappings', 0)
-  if !hasmapto('<Plug>(smooth-scroll-c-d)')
-    nmap <silent> <unique> <C-D> <Plug>(smooth-scroll-c-d)
+  if !hasmapto('<Plug>(smooth-scroll-down-full)')
+    nmap <silent> <unique> <C-D> <Plug>(smooth-scroll-down-full)
   endif
-  if !hasmapto('<Plug>(smooth-scroll-c-u)')
-    nmap <silent> <unique> <C-U> <Plug>(smooth-scroll-c-u)
+  if !hasmapto('<Plug>(smooth-scroll-up-full)')
+    nmap <silent> <unique> <C-U> <Plug>(smooth-scroll-up-full)
   endif
-  if !hasmapto('<Plug>(smooth-scroll-c-f)')
-    nmap <silent> <unique> <C-F> <Plug>(smooth-scroll-c-f)
+  if !hasmapto('<Plug>(smooth-scroll-down-half)')
+    nmap <silent> <unique> <C-F> <Plug>(smooth-scroll-down-half)
   endif
-  if !hasmapto('<Plug>(smooth-scroll-c-b)')
-    nmap <silent> <unique> <C-B> <Plug>(smooth-scroll-c-b)
+  if !hasmapto('<Plug>(smooth-scroll-up-half)')
+    nmap <silent> <unique> <C-B> <Plug>(smooth-scroll-up-half)
   endif
 endif
 
