@@ -21,52 +21,53 @@ set cpo&vim
 let g:smooth_scroll#scroll_latency = get(g:, 'smooth_scroll#scroll_latency', 5000)
 let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
-function! s:smooth_scroll(dir, windiv, scale)
-  let save_cul = &cul
-  if save_cul | set nocul | endif
+function! s:smooth_scroll(params, windiv, scale)
+  let save_cul = &l:cursorline
+  setlocal nocursorline
 
   let wlcount = winheight(0) / a:windiv
-  let latency = ((g:smooth_scroll#scroll_latency * a:scale) / 1000) . 'm'
+  let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
+  let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
-  let pos = a:dir.pos
-  let vbl = a:dir.vbl
-  let tob = a:dir.tob
+  let pos = a:params.pos
+  let vbl = a:params.vbl
+  let tob = a:params.tob
 
   for i in range(1, wlcount)
     if line(vbl) == tob
-      execute 'normal' (wlcount - i + 1) . pos
+      execute 'normal!' (wlcount - i + 1) . pos
       break
     endif
 
-    execute 'normal' pos
+    execute 'normal!' pos
 
     if i % skiplns == 0
       redraw
     endif
 
-    execute 'sleep' latency
+    execute waitcmd
   endfor
 
-  if save_cul | set cul | endif
+  let &l:cursorline = save_cul
 endfunction
 
 function! smooth_scroll#down(windiv, scale)
-  let dir = {
+  let params = {
         \   'pos': 'j' . (line('.') != line('w$') ? "\<C-E>" : '')
         \ , 'vbl': 'w$'
         \ , 'tob': line('$')
         \ }
-  call s:smooth_scroll(dir, a:windiv, a:scale)
+  call s:smooth_scroll(params, a:windiv, a:scale)
 endfunction
 
 function! smooth_scroll#up(windiv, scale)
-  let dir = {
+  let params = {
         \   'pos': 'k' . (line('.') != line('w0') ? "\<C-Y>" : '')
         \ , 'vbl': 'w0'
         \ , 'tob': 1
         \ }
-  call s:smooth_scroll(dir, a:windiv, a:scale)
+  call s:smooth_scroll(params, a:windiv, a:scale)
 endfunction
 
 let &cpo = s:save_cpo
