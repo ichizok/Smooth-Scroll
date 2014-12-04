@@ -30,17 +30,18 @@ function! s:smooth_scroll(params, windiv, scale)
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
-  let pos = a:params.pos
+  let mvc = a:params.mvc
+  let scw = a:params.scw
   let vbl = a:params.vbl
   let tob = a:params.tob
 
   for i in range(1, wlcount)
     if line(vbl) == tob
-      execute 'normal!' (wlcount - i + 1) . pos
+      execute 'normal!' (wlcount - i + 1) . mvc
       break
     endif
 
-    execute 'normal!' pos
+    execute 'normal!' mvc . scw
 
     if i % skiplns == 0
       redraw
@@ -54,7 +55,8 @@ endfunction
 
 function! smooth_scroll#down(windiv, scale)
   let params = {
-        \   'pos': 'j' . (line('.') != line('w$') ? "\<C-E>" : '')
+        \   'mvc': 'j'
+        \ , 'scw': "\<C-E>"
         \ , 'vbl': 'w$'
         \ , 'tob': line('$')
         \ }
@@ -63,7 +65,8 @@ endfunction
 
 function! smooth_scroll#up(windiv, scale)
   let params = {
-        \   'pos': 'k' . (line('.') != line('w0') ? "\<C-Y>" : '')
+        \   'mvc': 'k'
+        \ , 'scw': "\<C-Y>"
         \ , 'vbl': 'w0'
         \ , 'tob': 1
         \ }
