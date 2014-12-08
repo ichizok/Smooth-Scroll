@@ -25,15 +25,12 @@ function! s:smooth_scroll(params, windiv, scale)
   let save_cul = &l:cursorline
   setlocal nocursorline
 
-  let wlcount = winheight(0) / a:windiv
+  let wlcount = (line('w$') - line('w0') + 1) / a:windiv
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
-  let mvc = a:params.mvc
-  let scw = a:params.scw
-  let vbl = a:params.vbl
-  let tob = a:params.tob
+  let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
 
   for i in range(1, wlcount)
     if line(vbl) == tob
