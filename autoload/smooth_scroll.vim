@@ -25,7 +25,7 @@ function! s:smooth_scroll(params, windiv, scale)
   let save_cul = &l:cursorline
   setlocal nocursorline
 
-  let wlcount = (line('w$') - line('w0') + 1) / a:windiv
+  let wlcount = winheight(0) / a:windiv
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
@@ -34,17 +34,17 @@ function! s:smooth_scroll(params, windiv, scale)
 
   for i in range(1, wlcount)
     if line(vbl) == tob
-      execute 'normal!' (wlcount - i + 1) . mvc
+      silent execute 'normal!' (wlcount - i + 1) . mvc
       break
     endif
 
-    execute 'normal!' mvc . scw
+    silent execute 'normal!' mvc . scw
 
     if i % skiplns == 0
       redraw
     endif
 
-    execute waitcmd
+    silent execute waitcmd
   endfor
 
   let &l:cursorline = save_cul
@@ -52,7 +52,7 @@ endfunction
 
 function! smooth_scroll#down(windiv, scale)
   let params = {
-        \   'mvc': 'j'
+        \   'mvc': 'gj'
         \ , 'scw': "\<C-E>"
         \ , 'vbl': 'w$'
         \ , 'tob': line('$')
@@ -62,7 +62,7 @@ endfunction
 
 function! smooth_scroll#up(windiv, scale)
   let params = {
-        \   'mvc': 'k'
+        \   'mvc': 'gk'
         \ , 'scw': "\<C-Y>"
         \ , 'vbl': 'w0'
         \ , 'tob': 1
