@@ -23,31 +23,33 @@ let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
 function! s:smooth_scroll(params, windiv, scale) abort
   let save_cul = &l:cursorline
-  setlocal nocursorline
+  try
+    setlocal nocursorline
 
-  let wlcount = winheight(0) / a:windiv
-  let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
-  let skiplns = g:smooth_scroll#skip_line_size + 1
-  let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
+    let wlcount = winheight(0) / a:windiv
+    let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
+    let skiplns = g:smooth_scroll#skip_line_size + 1
+    let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
-  let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
+    let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
 
-  for i in range(1, wlcount)
-    if line(vbl) == tob
-      silent execute 'normal!' (wlcount - i + 1) . mvc
-      break
-    endif
+    for i in range(1, wlcount)
+      if line(vbl) == tob
+        silent execute 'normal!' (wlcount - i + 1) . mvc
+        break
+      endif
 
-    silent execute 'normal!' mvc . scw
+      silent execute 'normal!' mvc . scw
 
-    if i % skiplns == 0
-      redraw
-    endif
+      if i % skiplns == 0
+        redraw
+      endif
 
-    silent execute waitcmd
-  endfor
-
-  let &l:cursorline = save_cul
+      silent execute waitcmd
+    endfor
+  finally
+    let &l:cursorline = save_cul
+  endtry
 endfunction
 
 function! smooth_scroll#down(windiv, scale) abort
