@@ -21,7 +21,7 @@ set cpo&vim
 let g:smooth_scroll#scroll_latency = get(g:, 'smooth_scroll#scroll_latency', 5000)
 let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
-function! s:smooth_scroll(params, windiv, scale)
+function! s:smooth_scroll(params, windiv, scale) abort
   let save_cul = &l:cursorline
   setlocal nocursorline
 
@@ -50,7 +50,7 @@ function! s:smooth_scroll(params, windiv, scale)
   let &l:cursorline = save_cul
 endfunction
 
-function! smooth_scroll#down(windiv, scale)
+function! smooth_scroll#down(windiv, scale) abort
   let params = {
         \   'mvc': 'gj'
         \ , 'scw': "\<C-E>"
@@ -60,7 +60,7 @@ function! smooth_scroll#down(windiv, scale)
   call s:smooth_scroll(params, a:windiv, a:scale)
 endfunction
 
-function! smooth_scroll#up(windiv, scale)
+function! smooth_scroll#up(windiv, scale) abort
   let params = {
         \   'mvc': 'gk'
         \ , 'scw': "\<C-Y>"
