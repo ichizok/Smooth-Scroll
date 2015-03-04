@@ -32,6 +32,7 @@ function! s:smooth_scroll(params, windiv, scale) abort
     let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
     let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
+    let scrlcmd = line('.') == line(vbl) ? mvc : mvc . scw
 
     for i in range(1, wlcount)
       if line(vbl) == tob
@@ -39,7 +40,7 @@ function! s:smooth_scroll(params, windiv, scale) abort
         break
       endif
 
-      silent execute 'normal!' mvc . scw
+      silent execute 'normal!' scrlcmd
 
       if i % skiplns == 0
         redraw
