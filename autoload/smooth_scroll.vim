@@ -32,22 +32,26 @@ function! s:smooth_scroll(params, windiv, scale) abort
     let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
     let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
-    let scrlcmd = line('.') == line(vbl) ? mvc : mvc . scw
+    let curlnum = line('.')
+    let scrlcmd = curlnum == line(vbl) ? mvc : mvc . scw
 
-    for i in range(1, wlcount)
+    let i = 0
+    while i < wlcount
       if line(vbl) == tob
-        silent execute 'normal!' (wlcount - i + 1) . mvc
+        silent execute 'normal!' (wlcount - i) . mvc
         break
       endif
 
       silent execute 'normal!' scrlcmd
 
-      if i % skiplns == 0
+      if skiplns <= 1 || (i + 1) % skiplns == 0
         redraw
       endif
 
       silent execute waitcmd
-    endfor
+
+      let i = abs(curlnum - line('.'))
+    endwhile
   finally
     let &l:cursorline = save_cul
   endtry
