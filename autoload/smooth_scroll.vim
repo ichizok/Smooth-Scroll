@@ -21,11 +21,10 @@ set cpo&vim
 let g:smooth_scroll#scroll_latency = get(g:, 'smooth_scroll#scroll_latency', 5000)
 let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
-function! s:boundary_line(windiv, baseln, movcur) abort
+function! s:boundary_line(baseln, movcur) abort
   let save_pos = getcurpos()
   try
-    silent execute a:baseln
-          \ '| normal!' ((winheight(0) + 1) / a:windiv - 1) . a:movcur
+    silent execute a:baseln '| normal!' a:movcur
     return line('.')
   finally
     call setpos('.', save_pos)
@@ -35,26 +34,27 @@ endfunction
 function! s:do_smooth_scroll(params, windiv, scale) abort
   let [movcur, scrwin, ranges, bottom] =
         \  [a:params.movcur, a:params.scrwin, a:params.ranges, a:params.bottom]
+  let amount = (winheight(0) + 1) / a:windiv - 1
 
   if line(ranges[0]) == bottom
-    silent execute 'normal!' ((winheight(0) + 1) / a:windiv - 1) . movcur
+    silent execute 'normal!' amount . movcur
     return
   endif
 
   let boundln = a:windiv == 1
-        \ ? line(ranges[0]) : s:boundary_line(a:windiv, line(ranges[1]), movcur)
+        \ ? line(ranges[0]) : s:boundary_line(line(ranges[1]), amount . movcur)
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let scrlcmd = line('.') == line(ranges[0]) ? movcur : movcur . scrwin
   let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
 
-  let found = 0
+  let done = 0
   let i = 0
   let save_wln = winline()
 
-  while !found
+  while !done
     if line(ranges[1]) == boundln
-      let found = 1
+      let done = 1
     endif
 
     if line(ranges[0]) == bottom
