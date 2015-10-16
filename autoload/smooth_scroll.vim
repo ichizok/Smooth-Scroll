@@ -85,7 +85,7 @@ function! s:smooth_scroll(params, windiv, scale) abort
   let save_lz = &lazyredraw
   try
     setlocal nocursorcolumn nocursorline
-    set nolazyredraw
+    set lazyredraw
 
     call s:do_smooth_scroll(a:params, a:windiv, a:scale)
   finally
