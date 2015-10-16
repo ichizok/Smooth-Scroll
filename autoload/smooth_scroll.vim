@@ -21,58 +21,96 @@ set cpo&vim
 let g:smooth_scroll#scroll_latency = get(g:, 'smooth_scroll#scroll_latency', 5000)
 let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
-function! s:smooth_scroll(params, windiv, scale) abort
-  let save_cul = &l:cursorline
+function! s:boundary_line(windiv, baseln, movcur) abort
+  let save_pos = getcurpos()
   try
-    setlocal nocursorline
-
-    let wlcount = winheight(0) / a:windiv
-    let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
-    let skiplns = g:smooth_scroll#skip_line_size + 1
-    let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
-
-    let [mvc, scw, vbl, tob] = [a:params.mvc, a:params.scw, a:params.vbl, a:params.tob]
-    let curlnum = line('.')
-    let scrlcmd = curlnum == line(vbl) ? mvc : mvc . scw
-
-    let i = 0
-    while i < wlcount
-      if line(vbl) == tob
-        silent execute 'normal!' (wlcount - i) . mvc
-        break
-      endif
-
-      silent execute 'normal!' scrlcmd
-
-      if skiplns <= 1 || (i + 1) % skiplns == 0
-        redraw
-      endif
-
-      silent execute waitcmd
-
-      let i = abs(curlnum - line('.'))
-    endwhile
+    silent execute a:baseln
+          \ '| normal!' ((winheight(0) + 1) / a:windiv - 1) . a:movcur
+    return line('.')
   finally
+    call setpos('.', save_pos)
+  endtry
+endfunction
+
+function! s:do_smooth_scroll(params, windiv, scale) abort
+  let [movcur, scrwin, ranges, bottom] =
+        \  [a:params.movcur, a:params.scrwin, a:params.ranges, a:params.bottom]
+
+  if line(ranges[0]) == bottom
+    silent execute 'normal!' ((winheight(0) + 1) / a:windiv - 1) . movcur
+    return
+  endif
+
+  let boundln = a:windiv == 1
+        \ ? line(ranges[0]) : s:boundary_line(a:windiv, line(ranges[1]), movcur)
+  let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
+  let skiplns = g:smooth_scroll#skip_line_size + 1
+  let scrlcmd = line('.') == line(ranges[0]) ? movcur : movcur . scrwin
+  let waitcmd = latency > 0 ? 'sleep ' . latency . 'm' : ''
+
+  let found = 0
+  let i = 0
+  let save_wln = winline()
+
+  while !found
+    if line(ranges[1]) == boundln
+      let found = 1
+    endif
+
+    if line(ranges[0]) == bottom
+      silent execute 'normal!' (boundln - line('.')) . movcur
+      break
+    endif
+
+    silent execute 'normal!' scrlcmd
+
+    let diffln = winline() - save_wln
+    if diffln != 0
+      silent execute 'normal!' abs(diffln) . movcur
+    endif
+
+    if skiplns <= 1 || (i + 1) % skiplns == 0
+      redraw
+    endif
+
+    silent execute waitcmd
+
+    let i += 1
+  endwhile
+endfunction
+
+function! s:smooth_scroll(params, windiv, scale) abort
+  let save_cuc = &l:cursorcolumn
+  let save_cul = &l:cursorline
+  let save_lz = &lazyredraw
+  try
+    setlocal nocursorcolumn nocursorline
+    set nolazyredraw
+
+    call s:do_smooth_scroll(a:params, a:windiv, a:scale)
+  finally
+    let &l:cursorcolumn = save_cuc
     let &l:cursorline = save_cul
+    let &lazyredraw = save_lz
   endtry
 endfunction
 
 function! smooth_scroll#down(windiv, scale) abort
   let params = {
-        \   'mvc': 'gj'
-        \ , 'scw': "\<C-E>"
-        \ , 'vbl': 'w$'
-        \ , 'tob': line('$')
+        \   'movcur': 'gj'
+        \ , 'scrwin': "\<C-E>"
+        \ , 'ranges': ['w$', 'w0']
+        \ , 'bottom': line('$')
         \ }
   call s:smooth_scroll(params, a:windiv, a:scale)
 endfunction
 
 function! smooth_scroll#up(windiv, scale) abort
   let params = {
-        \   'mvc': 'gk'
-        \ , 'scw': "\<C-Y>"
-        \ , 'vbl': 'w0'
-        \ , 'tob': 1
+        \   'movcur': 'gk'
+        \ , 'scrwin': "\<C-Y>"
+        \ , 'ranges': ['w0', 'w$']
+        \ , 'bottom': 1
         \ }
   call s:smooth_scroll(params, a:windiv, a:scale)
 endfunction
