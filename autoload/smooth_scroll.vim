@@ -62,11 +62,11 @@ function! s:do_smooth_scroll(params, windiv, scale) abort
       break
     endif
 
-    silent execute 'normal!' scrlcmd
-
     let diffln = winline() - save_wln
-    if diffln != 0
-      silent execute 'normal!' abs(diffln) . movcur
+    silent execute 'normal!' (diffln == 0 ? scrlcmd : scrwin)
+
+    if done && diffln != 0
+      silent execute 'normal!' abs(diffln) . (diffln < 0 ? 'gj' : 'gkgk')
     endif
 
     if skiplns <= 1 || (i + 1) % skiplns == 0
