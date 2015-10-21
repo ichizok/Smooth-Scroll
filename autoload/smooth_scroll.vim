@@ -53,7 +53,6 @@ function! s:do_smooth_scroll(unitvec, windiv, scale) abort
 
   let boundln = a:windiv == 1
         \ ? line(ranges[0]) : s:boundary_line(line(ranges[1]), amount . movcur)
-  echomsg 'boundln=' . boundln
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let scrlcmd = line('.') == line(ranges[0]) ? movcur : movcur . scrwin
