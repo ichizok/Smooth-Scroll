@@ -31,9 +31,19 @@ function! s:boundary_line(baseln, movcur) abort
   endtry
 endfunction
 
-function! s:do_smooth_scroll(params, windiv, scale) abort
-  let [movcur, scrwin, ranges, bottom] =
-        \  [a:params.movcur, a:params.scrwin, a:params.ranges, a:params.bottom]
+function! s:do_smooth_scroll(unitvec, windiv, scale) abort
+  if a:unitvec > 0
+    let movcur = 'gj'
+    let scrwin = "\<C-E>"
+    let ranges = ['w$', 'w0']
+    let bottom = line('$')
+  else
+    let movcur = 'gk'
+    let scrwin = "\<C-Y>"
+    let ranges = ['w0', 'w$']
+    let bottom = 1
+  endif
+
   let amount = (winheight(0) + 1) / a:windiv - 1
 
   if line(ranges[0]) == bottom
@@ -43,6 +53,7 @@ function! s:do_smooth_scroll(params, windiv, scale) abort
 
   let boundln = a:windiv == 1
         \ ? line(ranges[0]) : s:boundary_line(line(ranges[1]), amount . movcur)
+  echomsg 'boundln=' . boundln
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
   let scrlcmd = line('.') == line(ranges[0]) ? movcur : movcur . scrwin
@@ -51,6 +62,7 @@ function! s:do_smooth_scroll(params, windiv, scale) abort
   let done = 0
   let i = 0
   let save_wln = winline()
+  let save_col = wincol()
 
   while !done
     if line(ranges[1]) == boundln
@@ -62,24 +74,31 @@ function! s:do_smooth_scroll(params, windiv, scale) abort
       break
     endif
 
-    let diffln = winline() - save_wln
-    silent execute 'normal!' (diffln == 0 ? scrlcmd : scrwin)
+    let diff_wln = winline() - save_wln
+    silent execute 'normal!' (diff_wln == 0 ? scrlcmd : scrwin)
 
-    if done && diffln != 0
-      silent execute 'normal!' abs(diffln) . (diffln < 0 ? 'gj' : 'gkgk')
+    if !done
+      silent execute waitcmd
+    else
+      let diff_wln = winline() - save_wln
+      if diff_wln != 0
+        silent execute 'normal!' abs(diff_wln) . (diff_wln < 0 ? 'gj' : 'gk')
+      endif
+      let diff_col = wincol() - save_col
+      if diff_col != 0
+        silent execute 'normal!' abs(diff_col) . (diff_col < 0 ? 'l' : 'h')
+      endif
     endif
 
     if skiplns <= 1 || (i + 1) % skiplns == 0
       redraw
     endif
 
-    silent execute waitcmd
-
     let i += 1
   endwhile
 endfunction
 
-function! s:smooth_scroll(params, windiv, scale) abort
+function! s:smooth_scroll(unitvec, windiv, scale) abort
   let save_cuc = &l:cursorcolumn
   let save_cul = &l:cursorline
   let save_lz = &lazyredraw
@@ -87,7 +106,7 @@ function! s:smooth_scroll(params, windiv, scale) abort
     setlocal nocursorcolumn nocursorline
     set lazyredraw
 
-    call s:do_smooth_scroll(a:params, a:windiv, a:scale)
+    call s:do_smooth_scroll(a:unitvec, a:windiv, a:scale)
   finally
     let &l:cursorcolumn = save_cuc
     let &l:cursorline = save_cul
@@ -96,23 +115,11 @@ function! s:smooth_scroll(params, windiv, scale) abort
 endfunction
 
 function! smooth_scroll#down(windiv, scale) abort
-  let params = {
-        \   'movcur': 'gj'
-        \ , 'scrwin': "\<C-E>"
-        \ , 'ranges': ['w$', 'w0']
-        \ , 'bottom': line('$')
-        \ }
-  call s:smooth_scroll(params, a:windiv, a:scale)
+  call s:smooth_scroll(+1, a:windiv, a:scale)
 endfunction
 
 function! smooth_scroll#up(windiv, scale) abort
-  let params = {
-        \   'movcur': 'gk'
-        \ , 'scrwin': "\<C-Y>"
-        \ , 'ranges': ['w0', 'w$']
-        \ , 'bottom': 1
-        \ }
-  call s:smooth_scroll(params, a:windiv, a:scale)
+  call s:smooth_scroll(-1, a:windiv, a:scale)
 endfunction
 
 let &cpo = s:save_cpo
