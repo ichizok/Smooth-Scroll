@@ -64,7 +64,7 @@ function! s:do_smooth_scroll(unitvec, windiv, scale) abort
   let save_col = wincol()
 
   while !done
-    if line(ranges[1]) == boundln
+    if a:unitvec > 0 ? line(ranges[1]) >= boundln : line(ranges[1]) <= boundln
       let done = 1
     endif
 
