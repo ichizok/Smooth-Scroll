@@ -24,10 +24,10 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Interfaces.
-nnoremap <silent> <script> <Plug>(smooth-scroll-down-full) :call smooth_scroll#down(1, 1)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-up-full)   :call smooth_scroll#up(1, 1)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-down-half) :call smooth_scroll#down(2, 2)<CR>
-nnoremap <silent> <script> <Plug>(smooth-scroll-up-half)   :call smooth_scroll#up(2, 2)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-down-full) :<C-U>call smooth_scroll#by(+winheight(0) * v:count1, v:count1 == 1)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-up-full)   :<C-U>call smooth_scroll#by(-winheight(0) * v:count1, v:count1 == 1)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-down-half) :<C-U>call smooth_scroll#by(+(v:count == 0 ? &l:scroll : v:count), 1, 1)<CR>
+nnoremap <silent> <script> <Plug>(smooth-scroll-up-half)   :<C-U>call smooth_scroll#by(-(v:count == 0 ? &l:scroll : v:count), 1, 1)<CR>
 
 " Default mappings.
 if !get(g:, 'smooth_scroll_no_default_key_mappings', 0)
