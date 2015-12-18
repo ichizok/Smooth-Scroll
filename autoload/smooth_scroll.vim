@@ -43,7 +43,6 @@ function! s:do_smooth_scroll(amount, scale) abort
   if a:amount > 0 ? bottom < boundln : bottom > boundln
     let boundln = bottom
   endif
-  echom printf('boundln=%d', boundln)
 
   let latency = g:smooth_scroll#scroll_latency * a:scale / 1000
   let skiplns = g:smooth_scroll#skip_line_size + 1
