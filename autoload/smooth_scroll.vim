@@ -21,6 +21,8 @@ set cpo&vim
 let g:smooth_scroll#scroll_latency = get(g:, 'smooth_scroll#scroll_latency', 5000)
 let g:smooth_scroll#skip_line_size = get(g:, 'smooth_scroll#skip_line_size', 0)
 
+let s:has_curswant = v:version > 704 || (v:version == 704 && has('patch310'))
+
 function! s:do_smooth_scroll(amount, scale) abort
   if a:amount > 0
     let movcur = 'gj'
@@ -52,7 +54,6 @@ function! s:do_smooth_scroll(amount, scale) abort
   let done = 0
   let k = 0
   let save_wln = winline()
-  let save_col = wincol()
 
   while !done
     if line(ranges[0]) == bottom
@@ -74,10 +75,6 @@ function! s:do_smooth_scroll(amount, scale) abort
       if diff_wln != 0
         silent execute 'normal!' abs(diff_wln) . (diff_wln < 0 ? 'gj' : 'gk')
       endif
-      let diff_col = wincol() - save_col
-      if diff_col != 0
-        silent execute 'normal!' abs(diff_col) . (diff_col < 0 ? 'l' : 'h')
-      endif
     endif
 
     if skiplns <= 1 || (k + 1) % skiplns == 0
@@ -93,6 +90,9 @@ function! s:smooth_scroll(amount, scale) abort
     return
   endif
 
+  if s:has_curswant
+    let save_curswant = getcurpos()[4]
+  endif
   let save_cuc = &l:cursorcolumn
   let save_cul = &l:cursorline
   let save_lz = &lazyredraw
@@ -105,6 +105,14 @@ function! s:smooth_scroll(amount, scale) abort
     let &l:cursorcolumn = save_cuc
     let &l:cursorline = save_cul
     let &lazyredraw = save_lz
+    if s:has_curswant
+      let pos = getcurpos()[1:]
+      if pos[3] != save_curswant
+        let pos[1] = save_curswant
+        let pos[3] = save_curswant
+        call cursor(pos)
+      endif
+    endif
   endtry
 endfunction
 
